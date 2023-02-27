@@ -40,3 +40,16 @@ Thumbs.db
 
 # Next.js
 .next
+
+# Prisma生成ファイル
+apps/api/src/infrastructure/prisma/@generated/*
+
+# NestJS 生成ファイル
+apps/api/src/infrastructure/graphql/@generated/*
+
+# GraphQL codegen生成ファイル
+apps/front/graphql/@generated/*
+
+# NextJS 生成ファイル
+apps/front/.next/*
+apps/front/out/*

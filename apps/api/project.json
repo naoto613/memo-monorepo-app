@@ -1,5 +1,4 @@
 {
-  "name": "api",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/api/src",
   "projectType": "application",
@@ -8,32 +7,31 @@
       "executor": "@nrwl/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "target": "node",
-        "compiler": "tsc",
         "outputPath": "dist/apps/api",
         "main": "apps/api/src/main.ts",
         "tsConfig": "apps/api/tsconfig.app.json",
         "assets": ["apps/api/src/assets"],
-        "isolatedConfig": true,
-        "webpackConfig": "apps/api/webpack.config.js"
+        "target": "node",
+        "compiler": "tsc"
       },
       "configurations": {
         "production": {
           "optimization": true,
           "extractLicenses": true,
-          "inspect": false
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/api/src/environments/environment.ts",
+              "with": "apps/api/src/environments/environment.prod.ts"
+            }
+          ]
         }
       }
     },
     "serve": {
-      "executor": "@nrwl/js:node",
+      "executor": "@nrwl/node:node",
       "options": {
         "buildTarget": "api:build"
-      },
-      "configurations": {
-        "production": {
-          "buildTarget": "api:build:production"
-        }
       }
     },
     "lint": {
@@ -45,16 +43,10 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": ["{workspaceRoot}/coverage/apps/api"],
       "options": {
         "jestConfig": "apps/api/jest.config.ts",
         "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
       }
     }
   },

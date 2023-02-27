@@ -24,7 +24,8 @@
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "front:build",
-        "dev": true
+        "dev": true,
+        "port": 8200
       },
       "configurations": {
         "development": {
@@ -40,21 +41,16 @@
     "export": {
       "executor": "@nrwl/next:export",
       "options": {
-        "buildTarget": "front:build:production"
+        "buildTarget": "front:build:production",
+        "buildLibsFromSource": true
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": ["{workspaceRoot}/coverage/apps/front"],
       "options": {
         "jestConfig": "apps/front/jest.config.ts",
         "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
       }
     },
     "lint": {
