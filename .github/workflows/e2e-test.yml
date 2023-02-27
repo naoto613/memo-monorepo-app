@@ -1,0 +1,55 @@
+name: E2E Test
+
+on:
+  pull_request:
+    branches-ignore:
+      - production*
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-22.04
+    env:
+      CYPRESS_GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      CYPRESS_GOOGLE_AUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_AUTH_REFRESH_TOKEN }}
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: database
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.11.0
+      - uses: actions/checkout@v3
+
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: asdf
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.asdf.outputs.nodejs }}
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --non-interactive --frozen-lockfile
+
+      - name: Prisma generate
+        run: yarn prisma:gen
+
+      - name: Codegen
+        run: yarn codegen:ci
+
+      - name: Export
+        run: yarn export:development
+
+      - name: E2E Test
+        run: yarn e2e:ci

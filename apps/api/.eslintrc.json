@@ -1,8 +1,5 @@
 {
-  "extends": [
-    "standard",
-    "../../.eslintrc.json"
-  ],
+  "extends": ["standard", "../../.eslintrc.json"],
   "ignorePatterns": ["!**/*"],
   "overrides": [
     {
@@ -11,7 +8,7 @@
         "no-useless-constructor": "off"
       },
       "parserOptions": {
-        "project": ["apps/backend/tsconfig.app.json", "apps/backend/tsconfig.spec.json"]
+        "project": ["apps/api/tsconfig.app.json", "apps/api/tsconfig.spec.json"]
       }
     }
   ]

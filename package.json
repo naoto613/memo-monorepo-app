@@ -9,7 +9,6 @@
     "build:api": "nx build api",
     "build:front": "nx build front",
     "export:development": "./node_modules/.bin/env-cmd -e development nx export front --skip-nx-cache && mv ./dist/apps/front/public/ ./dist/apps/front/exported/",
-    "export:staging": "./node_modules/.bin/env-cmd -e staging nx export front && mv ./dist/apps/front/public/ ./dist/apps/front/exported/",
     "export:production": "./node_modules/.bin/env-cmd -e production nx export front && mv ./dist/apps/front/public/ ./dist/apps/front/exported/",
     "test:front": "./node_modules/.bin/env-cmd -e test nx test front",
     "test:api": "./node_modules/.bin/env-cmd -e test nx test api --runInBand --forceExit --detectOpenHandles",

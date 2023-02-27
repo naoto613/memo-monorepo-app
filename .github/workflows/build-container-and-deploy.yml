@@ -1,0 +1,164 @@
+name: Build Container and deploy
+
+on:
+  push:
+    branches:
+      - production
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-container-and-deploy:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      SLACK_DEPLOY_WEBHOOK: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: current_version
+        run: |
+          git fetch --tags
+          echo "VERSION=$( git describe --tags --abbrev=0 )" >> $GITHUB_OUTPUT
+      - name: Notify started
+        env:
+          IMAGE_TAG: ${{ steps.current_version.outputs.VERSION }}
+        run: |
+          curl -XPOST --data-urlencode "payload={\"text\": \"Start $IMAGE_TAG deployment \"}" ${SLACK_DEPLOY_WEBHOOK}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.GHA_ROLE }}
+          role-session-name: ${{ secrets.ROLE_SESSION_NAME }}
+          aws-region: ${{ secrets.REGION }}
+
+      # ここからバックエンドのコンテナビルド
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set image name
+        id: container_image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.current_version.outputs.VERSION }}
+          ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
+        run: echo "NAME=$ECR_REGISTRY/$ECR_REPOSITORY_NAME:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push image to ECR
+        env:
+          IMAGE_NAME: ${{ steps.container_image.outputs.NAME }}
+        run: |
+          docker build . -f docker/Dockerfile-deploy -t "$IMAGE_NAME"
+          docker push "$IMAGE_NAME"
+      # ここからバックエンドのデプロイ
+      - name: Rewrite task-definition
+        env:
+          TASK_ROLE_ARN: ${{ secrets.TASK_ROLE_ARN }}
+          TASK_EXECUTION_ROLE_ARN: ${{ secrets.TASK_EXECUTION_ROLE_ARN }}
+        run: |
+          find .github/workflows/aws -name "*.json" | xargs sed -i -e s,SED_TASK_ROLE_ARN,$TASK_ROLE_ARN,g
+          find .github/workflows/aws -name "*.json" | xargs sed -i -e s,SED_TASK_EXECUTION_ROLE_ARN,$TASK_EXECUTION_ROLE_ARN,g
+          find .github/workflows/aws -name "*.json" | xargs sed -i -e s,SED_EXECUTION_ENVIRONMENT,production,g
+      # migration
+      - name: Render migrate task definition
+        id: render-container-migrate
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: .github/workflows/aws/task-definition-migrate.json
+          container-name: migrate
+          image: ${{ steps.container_image.outputs.NAME }}
+
+      - name: Deploy migration
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        id: deploy-migration
+        with:
+          task-definition: ${{ steps.render-container-migrate.outputs.task-definition }}
+          cluster: ${{ secrets.CLUSTER_NAME }}
+
+      - name: Execute migrate service
+        env:
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+          TASK_DEFINITION_ARN: ${{ steps.deploy-migration.outputs.task-definition-arn }}
+          ECS_SUBNET_ID: ${{ secrets.ECS_SUBNET_ID }}
+          ECS_SECURITY_GROUP_ID: ${{ secrets.ECS_SECURITY_GROUP_ID }}
+        run: |
+          aws ecs run-task --cluster $CLUSTER_NAME --launch-type FARGATE --task-definition $TASK_DEFINITION_ARN --network-configuration "awsvpcConfiguration={subnets=[$ECS_SUBNET_ID], securityGroups=[$ECS_SECURITY_GROUP_ID], assignPublicIp=ENABLED}" > run-task.log
+          TASK_ARN=$(jq -r '.tasks[0].taskArn' run-task.log)
+          aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN
+      # batch
+      - name: Render batch task definition
+        id: render-container-batch
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: .github/workflows/aws/task-definition-batch.json
+          container-name: batch
+          image: ${{ steps.container_image.outputs.NAME }}
+
+      - name: Deploy batch
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-container-batch.outputs.task-definition }}
+          cluster: ${{ secrets.CLUSTER }}
+
+      # api
+      - name: Render API task definition
+        id: render-container-api
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: .github/workflows/aws/task-definition-api.json
+          container-name: api
+          image: ${{ steps.container_image.outputs.NAME }}
+
+      - name: Deploy API
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-container-api.outputs.task-definition }}
+          service: ${{ secrets.SERVICE }}
+          cluster: ${{ secrets.ClUSTER }}
+          wait-for-service-stability: true
+
+      # ここからフロントエンドのデプロイ
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: asdf
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.asdf.outputs.nodejs }}
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --non-interactive --frozen-lockfile
+
+      - name: Prisma generate
+        run: yarn prisma:gen
+
+      - name: Execute codegen
+        run: yarn codegen:ci
+
+      - name: Run build Front
+        run: yarn export:production
+
+      - name: Deploy Front
+        env:
+          FRONT_S3_BUCKET: ${{ secrets.FRONT_S3_BUCKET }}
+          CLOUD_FRONT_DISTRIBUTION_ID: ${{ secrets.CLOUD_FRONT_DISTRIBUTION_ID }}
+        run: |
+          aws s3 sync dist/apps/front/exported $FRONT_S3_BUCKET
+          aws cloudfront create-invalidation --distribution-id $CLOUD_FRONT_DISTRIBUTION_ID --paths "/*"
+      - name: Notify failed
+        if: failure()
+        run: |
+          curl -XPOST --data-urlencode "payload={\"text\": \":warning: Deployment failed\"}" ${SLACK_DEPLOY_WEBHOOK}
+      - name: Notify successed
+        if: success()
+        run: |
+          curl -XPOST --data-urlencode "payload={\"text\": \":tada: Deployment has been successfully deployed\"}" ${SLACK_DEPLOY_WEBHOOK}

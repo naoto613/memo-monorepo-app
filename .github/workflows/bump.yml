@@ -1,0 +1,44 @@
+name: Bump
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: current_version
+        run: |
+          git fetch --tags
+          echo "VERSION=$( git describe --tags --abbrev=0 )" >> $GITHUB_OUTPUT
+      - name: Switch to target version
+        env:
+          CURRENT_VERSION: ${{ steps.current_version.outputs.VERSION }}
+        run: |
+          git switch -c release/production-${CURRENT_VERSION} origin/main
+      - name: Push branch
+        env:
+          CURRENT_VERSION: ${{ steps.current_version.outputs.VERSION }}
+        run: git push -u origin release/production-${CURRENT_VERSION}
+
+      - name: Create pull request
+        uses: actions/github-script@v6
+        env:
+          CURRENT_VERSION: ${{ steps.current_version.outputs.VERSION }}
+        with:
+          script: |
+            github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Bump ${process.env.CURRENT_VERSION}`,
+              body: `Bump ${process.env.CURRENT_VERSION}`,
+              head: `${context.repo.owner}:release/production-${process.env.CURRENT_VERSION}`,
+              base: 'production'
+            })

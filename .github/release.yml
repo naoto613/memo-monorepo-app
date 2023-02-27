@@ -1,0 +1,20 @@
+changelog:
+  categories:
+    - title: New Features
+      labels:
+        - feature
+    - title: Bug Fixes
+      labels:
+        - bug
+    - title: Documentation
+      labels:
+        - documentation
+    - title: Revert
+      labels:
+        - revert
+    - title: Environment
+      labels:
+        - environment
+    - title: Other Changes
+      labels:
+        - '*'

@@ -3,7 +3,7 @@
 echo "コミットメッセージを作成します"
 echo "コミットの変更対象を番号で選択してください"
 
-select commit_target in frontend backend other
+select commit_target in front api other
 do
   if [ -z "$commit_target" ]; then
     echo '番号が不正です'
