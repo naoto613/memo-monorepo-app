@@ -1,0 +1,49 @@
+name: Execute Migration
+
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  execute-batch:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: current_version
+        run: |
+          git fetch --tags
+          echo "VERSION=$( git describe --tags --abbrev=0 )" >> $GITHUB_OUTPUT
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.GHA_ROLE }}
+          role-session-name: ${{ secrets.ROLE_SESSION_NAME }}
+          aws-region: ${{ secrets.REGION }}
+
+      - name: Set image name
+        id: container_image
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.current_version.outputs.VERSION }}
+          ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
+        run: echo "NAME=$ECR_REGISTRY/$ECR_REPOSITORY_NAME:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Execute migration service
+        env:
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+          ECS_SUBNET_ID: ${{ secrets.ECS_SUBNET_ID }}
+          ECS_SECURITY_GROUP_ID: ${{ secrets.ECS_SECURITY_GROUP_ID }}
+        run: |
+          aws ecs list-task-definitions --family-prefix migrate-task-definition > task-definition.log
+          LATEST_TASK_DEFINITION_ARN=$(jq -r '.taskDefinitionArns[-1]' task-definition.log)
+          aws ecs run-task --cluster $CLUSTER_NAME --launch-type FARGATE --task-definition $LATEST_TASK_DEFINITION_ARN --overrides '{"containerOverrides": [{"name": "migrate", "command": ["./node_modules/.bin/env-cmd", "-e", "production", "./node_modules/prisma/build/index.js", 'migrate', "deploy"]}]}' --network-configuration "awsvpcConfiguration={subnets=[$ECS_SUBNET_ID], securityGroups=[$ECS_SECURITY_GROUP_ID], assignPublicIp=ENABLED}" > run-task.log
+          TASK_ARN=$(jq -r '.tasks[0].taskArn' run-task.log)
+          aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN

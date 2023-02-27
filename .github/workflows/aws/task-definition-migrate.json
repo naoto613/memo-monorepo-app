@@ -1,0 +1,51 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "migrate",
+      "image": "IMAGE_NAME",
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "/env/DATABASE_URL"
+        },
+        {
+          "name": "NEW_RELIC_LICENSE_KEY",
+          "valueFrom": "/env/NEW_RELIC_LICENSE_KEY"
+        }
+      ],
+      "command": [
+        "./node_modules/.bin/env-cmd",
+        "-e",
+        "SED_EXECUTION_ENVIRONMENT",
+        "./node_modules/prisma/build/index.js",
+        "migrate",
+        "deploy"
+      ],
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "log",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "migrate"
+        }
+      },
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000
+        }
+      ]
+    }
+  ],
+  "taskRoleArn": "SED_TASK_ROLE_ARN",
+  "executionRoleArn": "SED_TASK_EXECUTION_ROLE_ARN",
+  "family": "migration-task-definition",
+  "cpu": "256",
+  "memory": "512",
+  "networkMode": "awsvpc",
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX"
+  },
+  "requiresCompatibilities": ["FARGATE"]
+}

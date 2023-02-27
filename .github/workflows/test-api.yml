@@ -1,0 +1,54 @@
+name: Test Api
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/src/**'
+      - 'prisma/schema.prisma'
+      - '.github/workflows/test-api.yml'
+      - 'yarn.lock'
+    branches-ignore:
+      - production*
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: database
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.11.0
+
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: asdf
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.asdf.outputs.nodejs }}
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --non-interactive --frozen-lockfile
+
+      - name: Prisma generate and migrate
+        run: |
+          yarn prisma:gen
+          yarn migrate:test
+
+      - name: Test
+        env:
+          NODE_OPTIONS: '--max_old_space_size=4096'
+        run: yarn test:api

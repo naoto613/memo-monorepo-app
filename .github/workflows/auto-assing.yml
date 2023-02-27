@@ -1,0 +1,24 @@
+name: Auto Assign
+
+on:
+  pull_request:
+    types: [opened]
+    branches-ignore:
+      - staging*
+      - production*
+
+jobs:
+  assign:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+      contents: write
+      repository-projects: read
+    if: ${{ github.actor != 'dependabot[bot]' && toJSON(github.event.pull_request.assignees) == '[]' }}
+    steps:
+      - run: gh pr edit $NUMBER --add-assignee $ASSIGNEE
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          ASSIGNEE: ${{ github.event.pull_request.user.login }}

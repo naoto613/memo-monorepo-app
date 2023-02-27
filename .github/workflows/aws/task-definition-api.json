@@ -1,0 +1,55 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "IMAGE_NAME",
+      "memory": 512,
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "/env/DATABASE_URL"
+        },
+        {
+          "name": "JWT_ACCESS_SECRET",
+          "valueFrom": "/env/JWT_ACCESS_SECRET"
+        },
+        {
+          "name": "JWT_REFRESH_SECRET",
+          "valueFrom": "/env/JWT_REFRESH_SECRET"
+        }
+      ],
+      "command": [
+        "./node_modules/.bin/env-cmd",
+        "-e",
+        "SED_EXECUTION_ENVIRONMENT",
+        "node",
+        "dist/apps/api/main"
+      ],
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "log",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "api"
+        }
+      },
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000
+        }
+      ]
+    }
+  ],
+  "taskRoleArn": "SED_TASK_ROLE_ARN",
+  "executionRoleArn": "SED_TASK_EXECUTION_ROLE_ARN",
+  "family": "api-task-definition",
+  "cpu": "256",
+  "memory": "512",
+  "networkMode": "awsvpc",
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX"
+  },
+  "requiresCompatibilities": ["FARGATE"]
+}

@@ -1,0 +1,41 @@
+name: Test Front
+
+on:
+  pull_request:
+    paths:
+      - 'apps/front/**'
+      - '.github/workflows/test-front.yml'
+      - 'yarn.lock'
+    branches-ignore:
+      - production*
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.11.0
+
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: asdf
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.asdf.outputs.nodejs }}
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --non-interactive --frozen-lockfile
+
+      - name: Prisma generate
+        run: yarn prisma:gen
+
+      - name: codegen
+        run: yarn codegen:ci
+
+      - name: test
+        run: yarn test:front

@@ -1,0 +1,59 @@
+name: Auto Labeling
+on: [pull_request]
+
+jobs:
+  assign:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+      contents: write
+      repository-projects: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Add feature label
+        if: ${{ startsWith(github.head_ref, 'feat/') }}
+        run: gh pr edit $NUMBER --add-label feature
+
+      - name: Add chore label
+        if: ${{ startsWith(github.head_ref, 'chore/') }}
+        run: gh pr edit $NUMBER --add-label chore
+
+      - name: Add release label
+        if: ${{ startsWith(github.head_ref, 'release/') }}
+        run: gh pr edit $NUMBER --add-label release
+
+      - name: Add bug label
+        if: ${{ startsWith(github.head_ref, 'bug/') }}
+        run: gh pr edit $NUMBER --add-label bug
+
+      - name: Add documentation label
+        if: ${{ startsWith(github.head_ref, 'docs/') }}
+        run: gh pr edit $NUMBER --add-label documentation
+
+      - name: Add environment label
+        if: ${{ startsWith(github.head_ref, 'env/') }}
+        run: gh pr edit $NUMBER --add-label environment
+
+      - name: Add revert label
+        if: ${{ startsWith(github.head_ref, 'revert/') }}
+        run: gh pr edit $NUMBER --add-label revert
+
+      - name: Check changed file paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+            front:
+              - 'apps/front/**'
+      - name: Add api label
+        if: steps.changes.outputs.api == 'true'
+        run: gh pr edit $NUMBER --add-label Api
+
+      - name: Add front label
+        if: steps.changes.outputs.front == 'true'
+        run: gh pr edit $NUMBER --add-label Front
