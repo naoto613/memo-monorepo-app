@@ -1,0 +1,68 @@
+#==================================================
+# Base image Layer
+FROM node:18.14-slim as base
+#==================================================
+# Package install Layer
+FROM base as node_modules
+
+WORKDIR /modules
+
+COPY package.json yarn.lock ./
+
+RUN yarn install --non-interactive --frozen-lockfile --production
+#==================================================
+# Build Layer
+FROM base as build
+
+WORKDIR /build
+
+COPY . .
+
+RUN yarn install --non-interactive --frozen-lockfile
+
+RUN yarn prisma:gen && yarn build:api
+#==================================================
+# Run Layer
+# Ubuntu22.04
+FROM ubuntu:jammy-20220801
+
+ENV NODE_ENV=production
+# タイムゾーンを設定
+ENV TZ=Asia/Tokyo
+
+EXPOSE 3000
+
+# PID1問題を回避するためにtiniをinstall
+RUN apt-get update \
+  && apt-get -qq install -y --no-install-recommends \
+  tini \
+  && rm -rf /var/lib/apt/lists/*
+
+# 不要なパッケージを追加しないようにするため、baseからnodeをcopyする
+COPY --from=base /usr/local/include/ /usr/local/include/
+COPY --from=base /usr/local/lib/ /usr/local/lib/
+COPY --from=base /usr/local/bin/ /usr/local/bin/
+# prismaの実行に必要
+COPY --from=base /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so.1.1
+COPY --from=base /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1
+
+# myuserとgroupを追加
+RUN groupadd --gid 1000 myuser \
+  && useradd --uid 1000 --gid myuser --shell /bin/bash --create-home myuser \
+  && mkdir /app \
+  && chown -R myuser:myuser /app
+USER myuser
+WORKDIR /app
+
+COPY --from=build /build/dist /app/dist
+COPY --from=build /build/.env-cmdrc.js /app/.env-cmdrc.js
+COPY --from=node_modules /modules/node_modules /app/node_modules
+# マイグレーション用
+COPY --from=build /build/apps/api/src/infrastructure/prisma/schema.prisma /app/prisma/schema.prisma
+COPY --from=build /build/apps/api/src/infrastructure/prisma/migrations /app/prisma/migrations
+# SQLファイル
+COPY --from=build /build/apps/api/src/infrastructure/big-query/sql /app/sql
+# devDependencies が必要なため--from=buildからprisma:genで生成したものをcopyする
+COPY --from=build /build/node_modules/.prisma/client /app/node_modules/.prisma/client
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
