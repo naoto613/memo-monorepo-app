@@ -1,6 +1,8 @@
 {
   "extends": [
     "plugin:@nrwl/nx/react-typescript",
+    "plugin:react-hooks/recommended",
+    "standard",
     "next",
     "next/core-web-vitals",
     "../../.eslintrc.json"
@@ -10,7 +12,9 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        "@next/next/no-html-link-for-pages": ["error", "apps/front/pages"]
+        "@next/next/no-html-link-for-pages": ["error", "apps/frontend/pages"],
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn"
       }
     },
     {

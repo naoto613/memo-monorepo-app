@@ -7,5 +7,6 @@ export default {
     '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nrwl/next/babel'] }],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../coverage/apps/front',
-};
+  coverageDirectory: '../../coverage/apps/frontend',
+  setupFiles: ['./test/test-setup.js'],
+}

@@ -1,1 +1,8 @@
-node_modules
+/node_modules
+/dist
+/coverage
+# GraphQLスキーマファイル
+apps/api/src/infrastructure/prisma/@generated/*
+
+# GraphQL codegen生成ファイル
+apps/front/graphql/@generated/*

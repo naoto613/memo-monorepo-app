@@ -2,6 +2,13 @@
   "extends": "../../tsconfig.base.json",
   "files": [],
   "include": [],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "esModuleInterop": true
+  },
   "references": [
     {
       "path": "./tsconfig.app.json"
@@ -9,8 +16,5 @@
     {
       "path": "./tsconfig.spec.json"
     }
-  ],
-  "compilerOptions": {
-    "esModuleInterop": true
-  }
+  ]
 }

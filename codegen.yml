@@ -1,0 +1,13 @@
+overwrite: true
+schema: 'apps/api/src/infrastructure/graphql/@generated/schema.gql'
+documents: 'apps/front/graphql/**/*.graphql'
+generates:
+  apps/front/graphql/@generated/graphql.tsx:
+    plugins:
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typescript-urql'
+      - 'urql-introspection'
+    config:
+      arrayInputCoercion: false
+      enumsAsConst: true
