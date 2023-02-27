@@ -22,11 +22,11 @@ jobs:
         env:
           CURRENT_VERSION: ${{ steps.current_version.outputs.VERSION }}
         run: |
-          git switch -c release/staging-${CURRENT_VERSION} origin/main
+          git switch -c release/production-${CURRENT_VERSION} origin/main
       - name: Push branch
         env:
           CURRENT_VERSION: ${{ steps.current_version.outputs.VERSION }}
-        run: git push -u origin release/staging-${CURRENT_VERSION}
+        run: git push -u origin release/production-${CURRENT_VERSION}
 
       - name: Create pull request
         uses: actions/github-script@v6
