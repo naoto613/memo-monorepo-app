@@ -1,0 +1,57 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["orderByNulls"]
+}
+
+generator nestgraphql {
+  provider                              = "node node_modules/prisma-nestjs-graphql"
+  output                                = "./@generated"
+  fields_Validator_from                 = "class-validator"
+  fields_Validator_input                = true
+  decorate_1_type                       = "Create*Args"
+  decorate_1_field                      = data
+  decorate_1_name                       = ValidateNested
+  decorate_1_from                       = "class-validator"
+  decorate_1_arguments                  = "[]"
+  decorate_2_type                       = "Create*Args"
+  decorate_2_field                      = data
+  decorate_2_name                       = Type
+  decorate_2_from                       = "class-transformer"
+  decorate_2_arguments                  = "['() => {propertyType.0}']"
+  noAtomicOperations                    = true
+  purgeOutput                           = true
+  requireSingleFieldsInWhereUniqueInput = true
+  noTypeId                              = true
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// ユーザー
+model User {
+  /// ID
+  id           Int      @id @default(autoincrement())
+  /// @Validator.IsEmail()
+  /// メールアドレス
+  email        String   @unique @db.VarChar(100)
+  /// @Validator.IsNotEmpty()
+  /// 名前
+  name         String   @db.VarChar(100)
+  /// @Validator.IsBoolean()
+  /// 管理者フラグ
+  isAdmin      Boolean
+  /// @HideField({ input: true, output: true })
+  /// リフレッシュトークン
+  refreshToken String?  @db.VarChar(200)
+  /// @HideField({ input: true, output: true })
+  /// 有効フラグ
+  isValid      Boolean  @default(true)
+  /// @HideField({ input: true, output: true })
+  /// 作成日時
+  createdAt    DateTime @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  /// @HideField({ input: true, output: true })
+  /// 更新日時
+  updatedAt    DateTime @default(dbgenerated("NOW() ON UPDATE CURRENT_TIMESTAMP")) @db.Timestamp(0)
+}
