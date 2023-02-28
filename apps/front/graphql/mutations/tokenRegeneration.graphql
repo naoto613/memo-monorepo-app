@@ -1,0 +1,10 @@
+mutation tokenRegeneration {
+  tokenRegeneration {
+    refreshToken
+    user {
+      email
+      name
+      isAdmin
+    }
+  }
+}

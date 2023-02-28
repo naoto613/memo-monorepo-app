@@ -1,0 +1,15 @@
+query Users(
+  $searchConditions: SearchConditionsForSearchUsersInput
+  $offset: Int
+  $limit: Int
+) {
+  users(searchConditions: $searchConditions, offset: $offset, limit: $limit) {
+    count
+    data {
+      id
+      email
+      name
+      isAdmin
+    }
+  }
+}
