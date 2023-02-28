@@ -1,0 +1,10 @@
+mutation Login($idToken: String!) {
+  login(idToken: $idToken) {
+    refreshToken
+    user {
+      email
+      name
+      isAdmin
+    }
+  }
+}

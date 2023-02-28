@@ -1,0 +1,5 @@
+mutation UpdateUser($data: UserCreateInput!, $id: Int!) {
+  updateUser(data: $data, id: $id) {
+    __typename
+  }
+}
