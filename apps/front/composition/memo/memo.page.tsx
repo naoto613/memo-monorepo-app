@@ -1,14 +1,14 @@
-import UserContainer from './containers'
+import MemoContainer from './containers'
 import { useRouter } from 'next/router'
-import { UsersQueryVariables } from '@/graphql/*'
+import { MemosQueryVariables } from '@/graphql/*'
 import { useMemo, useState } from 'react'
 import Head from 'next/head'
 import { Flex, Heading, Box } from '@chakra-ui/react'
 
-export default function User() {
+export default function Memo() {
   const router = useRouter()
 
-  const [queryVariables, setQueryVariables] = useState<UsersQueryVariables>({})
+  const [queryVariables, setQueryVariables] = useState<MemosQueryVariables>({})
 
   useMemo(() => {
     const queryParams = router.query
@@ -21,15 +21,13 @@ export default function User() {
     const offset = queryParams.offset ? Number(queryParams.offset) : 0
     const limit = queryParams.limit ? Number(queryParams.limit) : 50
 
-    const condition: UsersQueryVariables = {
+    const condition: MemosQueryVariables = {
       offset,
       limit,
       searchConditions: {},
-    } as UsersQueryVariables
-    searchConditions?.name &&
-      (condition.searchConditions.name = searchConditions.name as string)
-    searchConditions?.email &&
-      (condition.searchConditions.email = searchConditions.email as string)
+    } as MemosQueryVariables
+    searchConditions?.content &&
+      (condition.searchConditions.content = searchConditions.content as string)
 
     setQueryVariables(condition)
   }, [router.query])
@@ -39,17 +37,17 @@ export default function User() {
   return (
     <>
       <Head>
-        <title>ユーザー</title>
+        <title>メモ</title>
       </Head>
       <Flex flexDirection={'column'}>
         <Box p={4} flexShrink={0}>
           <Heading as={'h3'} size={'lg'}>
-            ユーザー
+            メモ
           </Heading>
         </Box>
         <Box>
           <Box position={'absolute'} px={4}>
-            <UserContainer queryVariables={queryVariables} />
+            <MemoContainer queryVariables={queryVariables} />
           </Box>
         </Box>
       </Flex>
