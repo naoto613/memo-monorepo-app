@@ -4,10 +4,6 @@ import { resetTable } from '@/utils/test-helper/reset-table'
 import { initializeIntegrationTest } from '@/utils/test-helper/initialize-integration-test'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '@/infrastructure/ioc/app.module'
-import {
-  GraphQLErrorType,
-  GraphQLErrorExtensionsType,
-} from '@/types/errors/graphql-error.type'
 import { callMemoFactory } from '@/infrastructure/prisma/factories/memos/call-memo-factory'
 import { MemoFactoryArgsType } from '@/infrastructure/prisma/factories/memos/memo-factory-args.type'
 import { prismaInstance } from '@/infrastructure/prisma/prisma-instance'
@@ -104,36 +100,31 @@ describe('Memos', () => {
   })
 
   describe('createMemo', () => {
-    const createMutation = (email: string) => {
-      return {
-        query: `
+    const createMutation = {
+      query: `
         mutation {
           createMemo(
             data: {
-              content: "テストです",
-              email: "${email}"
+              content: "テストです"
             }
           ) {
             __typename
           }
         }
       `,
-      }
     }
-
-    const validEmail = 'test1@example.com'
 
     describe('returned successfully', () => {
       it('should create a new memo', async () => {
         const userData: UserFactoryArgsType = {
-          email: 'test1@example.com',
+          email: 'dummytaro@example.com',
         }
 
         await callUserFactory(userData)
 
         return request(app.getHttpServer())
           .post('/graphql')
-          .send(createMutation(validEmail))
+          .send(createMutation)
           .expect(HttpStatus.OK)
           .expect(async (res) => {
             expect(res.body.data.createMemo).toStrictEqual({
@@ -147,34 +138,11 @@ describe('Memos', () => {
               {
                 id: expect.anything(),
                 content: 'テストです',
-                email: 'test1@example.com',
+                email: 'dummytaro@example.com',
                 createdAt: expect.anything(),
                 updatedAt: expect.anything(),
               },
             ])
-          })
-      })
-    })
-
-    describe('validation error', () => {
-      it('when email is not an email format, an error will occur', () => {
-        return request(app.getHttpServer())
-          .post('/graphql')
-          .send(createMutation('test'))
-          .expect(HttpStatus.OK)
-          .expect((res) => {
-            const jsonResponse: GraphQLErrorType = JSON.parse(res.text)
-            const errorExtensions: GraphQLErrorExtensionsType =
-              jsonResponse.errors[0].extensions
-
-            expect(errorExtensions.code).toEqual('BAD_USER_INPUT')
-            expect(errorExtensions.response.error).toEqual('Bad Request')
-            expect(errorExtensions.response.message).toStrictEqual([
-              'data.email must be an email',
-            ])
-            expect(errorExtensions.response.statusCode).toEqual(
-              HttpStatus.BAD_REQUEST
-            )
           })
       })
     })

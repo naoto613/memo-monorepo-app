@@ -6,10 +6,6 @@ import * as Validator from 'class-validator'
 @InputType()
 class MemoInput {
   @Field(() => String, { nullable: false })
-  @Validator.IsEmail()
-  email!: string
-
-  @Field(() => String, { nullable: false })
   @Validator.IsNotEmpty()
   content!: string
 }

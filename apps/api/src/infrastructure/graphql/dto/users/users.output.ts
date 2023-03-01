@@ -5,6 +5,7 @@ import { Field, Int, ObjectType, PickType } from '@nestjs/graphql'
 class DataForUserOutput extends PickType(UserOutput, [
   'email',
   'name',
+  'isAdmin',
 ] as const) {}
 
 @ObjectType()

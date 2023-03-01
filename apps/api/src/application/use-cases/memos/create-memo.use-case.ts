@@ -1,5 +1,5 @@
 import { MemosRepository } from '@/domain/repositories/memos/memos.repository'
-import { CreateMemoInput } from '@/infrastructure/graphql/dto/memos/create-memo.input'
+import { CreateMemoInputType } from '@/domain/repositories/memos/memos.repository.dto'
 import { Injectable } from '@nestjs/common'
 @Injectable()
 export class CreateMemoUseCase {
@@ -9,7 +9,7 @@ export class CreateMemoUseCase {
    * メモ作成
    * @param args メモ情報
    */
-  async execute(args: CreateMemoInput) {
+  async execute(args: CreateMemoInputType) {
     await this.repository.createMemo(args)
   }
 }
