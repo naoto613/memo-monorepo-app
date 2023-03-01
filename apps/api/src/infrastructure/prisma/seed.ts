@@ -1,6 +1,8 @@
 import { Logger } from '@nestjs/common'
 import { callUserFactory } from '@/infrastructure/prisma/factories/users/call-user-factory'
 import { UserFactoryArgsType } from '@/infrastructure/prisma/factories/users/user-factory-args.type'
+import { callMemoFactory } from '@/infrastructure/prisma/factories/memos/call-memo-factory'
+import { MemoFactoryArgsType } from '@/infrastructure/prisma/factories/memos/memo-factory-args.type'
 
 // User
 const createUsers = async () => {
@@ -27,10 +29,38 @@ const createUsers = async () => {
   Logger.log('User作成完了')
 }
 
+const createMemos = async () => {
+  const memoSeedData: MemoFactoryArgsType[] = [
+    {
+      content: '歯を磨く',
+      user: { email: 'test1@example.com' },
+    },
+    {
+      content: 'ご飯を食べる',
+      user: { email: 'test2@example.com' },
+    },
+    {
+      content: '寝る',
+      user: { email: 'test3@example.com' },
+    },
+    {
+      content: '遊ぶ',
+      user: { email: 'test3@example.com' },
+    },
+  ]
+
+  Logger.log('Memo作成開始')
+  for (const memoSeed of memoSeedData) {
+    await callMemoFactory(memoSeed)
+  }
+  Logger.log('Memo作成完了')
+}
+
 const main = async () => {
   Logger.log('Start seeding ...')
 
   await createUsers()
+  await createMemos()
 
   Logger.log('Seeding finished.')
 }

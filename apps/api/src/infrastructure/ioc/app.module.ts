@@ -10,6 +10,7 @@ import { AcceptAuthoritiesGuard } from '@/infrastructure/guards/accept-authoriti
 import { UsersResolverModule } from '@/infrastructure/ioc/interfaces/resolvers/users.resolver.module'
 import { AuthResolverModule } from '@/infrastructure/ioc/interfaces/resolvers/auth.resolver.module'
 import { GraphqlExceptionFilter } from '@/infrastructure/filters/graphql-exception.filter'
+import { MemosResolverModule } from '@/infrastructure/ioc/interfaces/resolvers/memos.resolver.module'
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { GraphqlExceptionFilter } from '@/infrastructure/filters/graphql-excepti
     }),
     UsersResolverModule,
     AuthResolverModule,
+    MemosResolverModule,
   ],
   providers: [
     LoggingPlugin,

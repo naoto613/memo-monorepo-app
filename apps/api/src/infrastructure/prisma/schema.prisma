@@ -29,6 +29,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// メモ
+model Memo {
+  /// ID
+  id        Int      @id @default(autoincrement())
+  /// @HideField({ output: true })
+  /// メールアドレス
+  email     String   @db.VarChar(100)
+  /// @Validator.IsNotEmpty()
+  /// 内容
+  content   String   @db.VarChar(1000)
+  /// @HideField({ input: true, output: true })
+  /// 作成日時
+  createdAt DateTime @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  /// @HideField({ input: true, output: true })
+  /// 更新日時
+  updatedAt DateTime @default(dbgenerated("NOW() ON UPDATE CURRENT_TIMESTAMP")) @db.Timestamp(0)
+  user      User     @relation(fields: [email], references: [email])
+}
+
 /// ユーザー
 model User {
   /// ID
@@ -54,4 +73,5 @@ model User {
   /// @HideField({ input: true, output: true })
   /// 更新日時
   updatedAt    DateTime @default(dbgenerated("NOW() ON UPDATE CURRENT_TIMESTAMP")) @db.Timestamp(0)
+  memos        Memo[]
 }

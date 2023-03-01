@@ -8,7 +8,6 @@ export class UpdateUserInput {
   @Field(() => UserCreateInput, { nullable: false })
   @Type(() => UserCreateInput)
   @ValidateNested()
-  @Type(() => UserCreateInput)
   data: UserCreateInput
 
   @Field(() => Int, { nullable: false })
