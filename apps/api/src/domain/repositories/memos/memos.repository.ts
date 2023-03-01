@@ -1,13 +1,15 @@
 import { SearchMemosInput } from '@/infrastructure/graphql/dto/memos/search-memos.input'
-import { FindManyMemosOutputType } from '@/domain/repositories/memos/memos.repository.dto'
-import { CreateMemoInput } from '@/infrastructure/graphql/dto/memos/create-memo.input'
+import {
+  CreateMemoInputType,
+  FindManyMemosOutputType,
+} from '@/domain/repositories/memos/memos.repository.dto'
 
 export abstract class MemosRepository {
   /**
    * メモ登録
    * @param args メモ情報
    */
-  abstract createMemo(args: CreateMemoInput): Promise<void>
+  abstract createMemo(args: CreateMemoInputType): Promise<void>
 
   /**
    * メモ削除

@@ -2,12 +2,12 @@ import { MemosRepository } from '@/domain/repositories/memos/memos.repository'
 import { SearchMemosInput } from '@/infrastructure/graphql/dto/memos/search-memos.input'
 import { prismaInstance } from '@/infrastructure/prisma/prisma-instance'
 import { Injectable } from '@nestjs/common'
-import { CreateMemoInput } from '@/infrastructure/graphql/dto/memos/create-memo.input'
+import { CreateMemoInputType } from '@/domain/repositories/memos/memos.repository.dto'
 
 @Injectable()
 export class MemosRepositoryImpl implements MemosRepository {
-  async createMemo(args: CreateMemoInput) {
-    const { content, email } = args.data
+  async createMemo(args: CreateMemoInputType) {
+    const { content, email } = args
 
     await prismaInstance.memo.create({
       data: { content, user: { connect: { email } } },

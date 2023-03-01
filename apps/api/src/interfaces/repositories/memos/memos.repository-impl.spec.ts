@@ -5,9 +5,9 @@ import { prismaInstance } from '@/infrastructure/prisma/prisma-instance'
 import { MemosRepositoryModule } from '@/infrastructure/ioc/domain/repositories/memos.repository.module'
 import { callMemoFactory } from '@/infrastructure/prisma/factories/memos/call-memo-factory'
 import { MemoFactoryArgsType } from '@/infrastructure/prisma/factories/memos/memo-factory-args.type'
-import { CreateMemoInput } from '@/infrastructure/graphql/dto/memos/create-memo.input'
 import { UserFactoryArgsType } from '@/infrastructure/prisma/factories/users/user-factory-args.type'
 import { callUserFactory } from '@/infrastructure/prisma/factories/users/call-user-factory'
+import { CreateMemoInputType } from '@/domain/repositories/memos/memos.repository.dto'
 
 describe('MemosRepositoryImpl', () => {
   let repository: MemosRepository
@@ -29,8 +29,9 @@ describe('MemosRepositoryImpl', () => {
       }
       await callUserFactory(user)
 
-      const args: CreateMemoInput = {
-        data: { content: 'テストです', email: 'test@example.com' },
+      const args: CreateMemoInputType = {
+        content: 'テストです',
+        email: 'test@example.com',
       }
       // 実行
       await repository.createMemo(args)
