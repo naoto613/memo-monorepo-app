@@ -1,4 +1,4 @@
-import { Input, HStack, Box, Flex, Button } from '@chakra-ui/react'
+import { Input, HStack, Box, Flex, Button, Divider } from '@chakra-ui/react'
 import DataGrid from '@/shared/molecules/data-grid/dataGrid.page'
 import useUserPresenter from '@/composition/user/components/user.presenter'
 import {
@@ -7,6 +7,7 @@ import {
   UsersQueryVariables,
 } from '@/graphql/*'
 import { useForm } from 'react-hook-form'
+import { useRouter } from 'next/router'
 
 type Props = {
   queryData: UsersQuery['users']['data']
@@ -18,6 +19,7 @@ export default function UserComponent(props: Props) {
   const { queryData, filter, onCreate } = props
   const { register, watch, setValue, handleSubmit } =
     useForm<UsersQueryVariables['searchConditions']>()
+  const router = useRouter()
 
   const { doRegistration } = useUserPresenter({
     watch,
@@ -43,6 +45,18 @@ export default function UserComponent(props: Props) {
 
   return (
     <>
+      <Button
+        colorScheme={'orange'}
+        size="xs"
+        onClick={() =>
+          router.push({
+            pathname: '/memo',
+          })
+        }
+      >
+        メモ一覧へ
+      </Button>
+      <Divider p={2} />
       <Box flex={'1'} textAlign={'left'} fontWeight={'bold'}>
         検索条件（即時反映されます）
       </Box>

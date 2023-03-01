@@ -23,7 +23,7 @@ export default function LoginContainer() {
           return
         }
 
-        router.push(`user`)
+        router.push(`memo`)
       })
     },
     [login, router, toast]
