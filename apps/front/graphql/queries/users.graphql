@@ -6,7 +6,6 @@ query Users(
   users(searchConditions: $searchConditions, offset: $offset, limit: $limit) {
     count
     data {
-      id
       email
       name
       isAdmin

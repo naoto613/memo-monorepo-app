@@ -1,0 +1,15 @@
+query Memos(
+  $searchConditions: SearchConditionsForSearchMemosInput
+  $offset: Int
+  $limit: Int
+) {
+  memos(searchConditions: $searchConditions, offset: $offset, limit: $limit) {
+    count
+    data {
+      content
+      user {
+        name
+      }
+    }
+  }
+}
