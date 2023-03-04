@@ -11,7 +11,7 @@
     "export:development": "./node_modules/.bin/env-cmd -e development nx export front --skip-nx-cache && mv ./dist/apps/front/public/ ./dist/apps/front/exported/",
     "export:production": "./node_modules/.bin/env-cmd -e production nx export front && mv ./dist/apps/front/public/ ./dist/apps/front/exported/",
     "test:front": "./node_modules/.bin/env-cmd -e test nx test front",
-    "test:api": "./node_modules/.bin/env-cmd -e test nx test api --runInBand --forceExit --detectOpenHandles",
+    "test:api": "./node_modules/.bin/env-cmd -e test nx test api --runInBand --forceExit --detectOpenHandles --coverage",
     "test:api:separately": "./node_modules/.bin/env-cmd -e test jest --runInBand --forceExit --detectOpenHandles",
     "e2e": "./node_modules/.bin/env-cmd -e e2e nx e2e front-e2e --watch --prod",
     "e2e:headress": "./node_modules/.bin/env-cmd -e e2e nx e2e front-e2e --prod",
