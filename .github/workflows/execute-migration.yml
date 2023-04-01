@@ -22,7 +22,7 @@ jobs:
           git fetch --tags
           echo "VERSION=$( git describe --tags --abbrev=0 )" >> $GITHUB_OUTPUT
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.GHA_ROLE }}
           role-session-name: ${{ secrets.ROLE_SESSION_NAME }}

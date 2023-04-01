@@ -32,7 +32,7 @@ jobs:
         run: |
           curl -XPOST --data-urlencode "payload={\"text\": \"Start $IMAGE_TAG deployment \"}" ${SLACK_DEPLOY_WEBHOOK}
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.GHA_ROLE }}
           role-session-name: ${{ secrets.ROLE_SESSION_NAME }}
